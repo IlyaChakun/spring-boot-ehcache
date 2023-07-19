@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+         updateCheck="false" monitoring="autodetect"
+         dynamicConfig="true"
+         name="upp1">
+
+    <cacheManagerPeerProviderFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+                                     properties="peerDiscovery=automatic,
+              multicastGroupAddress=230.0.0.1,
+              multicastGroupPort=4446,
+              timeToLive=1"/>
+
+    <cacheManagerPeerListenerFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"/>
+
+
+    <cache name="notificationCache"
+           maxBytesLocalHeap="10M"
+           timeToLiveSeconds="3600"
+           timeToIdleSeconds="3600"
+           memoryStoreEvictionPolicy="LRU"
+           diskPersistent="false"
+           overflowToDisk="false"
+           maxElementsOnDisk="0"
+           eternal="false">
+        <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                                   properties="replicateAsynchronously=true,
+                                    asynchronousReplicationIntervalMillis=100,
+                                    replicatePuts=true,
+                                    replicatePutsViaCopy=true,
+                                    replicateUpdates=true,
+                                    replicateUpdatesViaCopy=true,
+                                    replicateRemovals=true"/>
+        <bootstrapCacheLoaderFactory class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"
+                                     properties="bootstrapAsynchronously=false"/>
+    </cache>
+
+    <cache name="eventBusCache"
+           maxBytesLocalHeap="10M"
+           timeToLiveSeconds="3600"
+           timeToIdleSeconds="3600"
+           memoryStoreEvictionPolicy="LRU"
+           diskPersistent="false"
+           overflowToDisk="false"
+           maxElementsOnDisk="0"
+           eternal="false">
+        <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                                   properties="replicateAsynchronously=true,
+                                    asynchronousReplicationIntervalMillis=100,
+                                    replicatePuts=true,
+                                    replicatePutsViaCopy=true,
+                                    replicateUpdates=true,
+                                    replicateUpdatesViaCopy=true,
+                                    replicateRemovals=true"/>
+        <bootstrapCacheLoaderFactory class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"
+                                     properties="bootstrapAsynchronously=false"/>
+    </cache>
+
+
+    <cache name="eventCache"
+           maxBytesLocalHeap="10M"
+           timeToLiveSeconds="3600"
+           timeToIdleSeconds="3600"
+           memoryStoreEvictionPolicy="LRU"
+           diskPersistent="false"
+           overflowToDisk="false"
+           maxElementsOnDisk="0"
+           eternal="false">
+
+        <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                                   properties="replicateAsynchronously=true,
+                                asynchronousReplicationIntervalMillis=100,
+                                replicatePuts=true,
+                                replicatePutsViaCopy=true,
+                                replicateUpdates=true,
+                                replicateUpdatesViaCopy=true,
+                                replicateRemovals=true"/>
+
+        <bootstrapCacheLoaderFactory class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"
+                                     properties="bootstrapAsynchronously=false"/>
+
+    </cache>
+
+    <cache name="localCache"
+           maxEntriesLocalHeap="10000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="10"
+           timeToLiveSeconds="10"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off"
+    />
+
+</ehcache>

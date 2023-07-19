@@ -1,0 +1,44 @@
+dps/src/main/java/ch/webtra/projects/settlegate/scripts/
+target
+out
+dataSources
+node
+node_modules
+.idea
+*.iml
+*.iws
+*.ids
+.run/*.xml
+.classpath
+.project
+.settings
+.tmp
+.merge_file*
+.sass-cache
+.DS_Store
+src/main/webapp/dist
+src/main/webapp/bower_components
+.gradle
+build
+
+# spring-xd related
+spring-xd*
+custom-modules
+
+# rsa
+JAStatus*
+rsa_api.log
+
+# maven
+*.versionsBackup
+
+# Netbeans
+nb-configuration.xml
+nbactions.xml
+
+# Unwanted log files
+log.path_IS_UNDEFINED
+
+# when generating the JSON API docs - see the frontend-maven-plugin
+upp/index.html
+upp/package-lock.json
