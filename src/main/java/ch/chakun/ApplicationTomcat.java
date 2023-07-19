@@ -1,6 +1,6 @@
 //package ch.chakun;
 //
-//import ch.chakun.testingflow.eventbus_v2.EventBus;
+//import ch.chakun.testingflow.eventbus_v2.service.EventBus;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.SpringApplication;
 //import org.springframework.boot.autoconfigure.SpringBootApplication;

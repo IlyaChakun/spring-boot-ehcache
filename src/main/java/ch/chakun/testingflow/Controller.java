@@ -4,7 +4,7 @@ import ch.chakun.ehcache.CacheManager;
 import ch.chakun.testingflow.apm.TestApmEvent;
 import ch.chakun.testingflow.dto.EventBusEventPublishSettings;
 import ch.chakun.testingflow.dto.EventBusSubscriberSettings;
-import ch.chakun.testingflow.eventbus_v2.EventBus;
+import ch.chakun.testingflow.eventbus_v2.service.EventBus;
 import ch.chakun.testingflow.notification_v1.Notification;
 import ch.chakun.testingflow.notification_v1.NotificationReceiverService;
 import ch.chakun.testingflow.notification_v1.NotificationTestEvent;
@@ -110,6 +110,7 @@ public class Controller {
                             .map(TestApmEvent.class::cast)
                             .map(TestApmEvent::getKey)
                             .collect(Collectors.toSet());
+
                     return eventSet.containsAll(settings.getExpectedEventKeys());
                 }
         );
@@ -127,6 +128,8 @@ public class Controller {
     @PutMapping("/event-bus")
     public ResponseEntity<String> publishEvent(@RequestBody EventBusEventPublishSettings settings) {
 
+        System.out.println("Publishing event..: " + settings.toString());
+
         eventBus.publish(settings.getContextKey(), new TestApmEvent(settings.getEventKey()));
 
         String message = "Event published. contextKey=" + settings.getContextKey() + ", eventKey=" + settings.getEventKey();
@@ -135,6 +138,5 @@ public class Controller {
 
         return ResponseEntity.ok(message);
     }
-
 
 }

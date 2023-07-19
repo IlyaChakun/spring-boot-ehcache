@@ -1,14 +1,15 @@
-package ch.chakun.testingflow.eventbus_v2;
+package ch.chakun.testingflow.eventbus_v2.service;
 
 
+import ch.chakun.testingflow.eventbus_v2.EventBusCache;
+import ch.chakun.testingflow.eventbus_v2.domain.Subscriber;
+import ch.chakun.testingflow.eventbus_v2.domain.Topic;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -36,24 +37,11 @@ public class EventBusImpl implements EventBus {
 
         // todo Does it make sense to store published events which does not find eny subscribers?
 
-        List<Topic> contextTopics = new ArrayList<>(eventBusCache.getOrDefault(contextKey, Collections.emptyList()));
+        Topic topic = eventBusCache.getOrDefault(contextKey, null);
 
-        boolean allSubscribersCompleted = true;
-
-        for (Topic topic : contextTopics) {
-
+        if (topic != null) {
             topic.addEvent(event);
-
-            if (!topic.isWaitingConditionMet()) {
-                allSubscribersCompleted = false;
-            } else {
-                topic.complete();
-            }
-
-        }
-
-        if (allSubscribersCompleted) {
-            eventBusCache.remove(contextKey);
+            topic.notifySubscribers();
         }
     }
 
@@ -62,16 +50,18 @@ public class EventBusImpl implements EventBus {
                                                            Predicate<List<Serializable>> waitingCondition,
                                                            int timeoutSeconds) {
 
-        Topic topic = new Topic(waitingCondition);
-        eventBusCache.computeIfAbsent(contextKey, k -> new ArrayList<>()).add(topic);
+        Subscriber subscriber = new Subscriber(waitingCondition);
 
-        CompletableFuture<List<Serializable>> future = topic.getFuture();
+        Topic topic = eventBusCache.computeIfAbsent(contextKey, k -> new Topic());
+        topic.getSubscribers().add(subscriber);
 
-        ScheduledFuture<?> timeoutTask = timeoutTask(contextKey, timeoutSeconds, future);
+        CompletableFuture<List<Serializable>> subscriberFuture = subscriber.getFuture();
 
-        cleanupTask(contextKey, future, timeoutTask);
+        ScheduledFuture<?> timeoutTask = subscriberTimeoutTask(contextKey, timeoutSeconds, subscriberFuture);
 
-        return future;
+        subscriberCleanupTask(contextKey, subscriberFuture, timeoutTask);
+
+        return subscriberFuture;
     }
 
     @Override
@@ -99,7 +89,7 @@ public class EventBusImpl implements EventBus {
 //        cleanupContextSubscribers(contextKey); // todo if multiple subscribers, remove only one. how?
 //    }
 
-    private void cleanupTask(String contextKey, CompletableFuture<List<Serializable>> future, ScheduledFuture<?> timeoutTask) {
+    private void subscriberCleanupTask(String contextKey, CompletableFuture<List<Serializable>> future, ScheduledFuture<?> timeoutTask) {
         // cleanup task
         future.whenComplete((result, exception) -> {
             if (!timeoutTask.isDone()) {
@@ -112,11 +102,10 @@ public class EventBusImpl implements EventBus {
         });
     }
 
-    private ScheduledFuture<?> timeoutTask(String contextKey, int timeoutSeconds, CompletableFuture<List<Serializable>> future) {
+    private ScheduledFuture<?> subscriberTimeoutTask(String contextKey, int timeoutSeconds, CompletableFuture<List<Serializable>> future) {
         // timeout task
         return scheduler.schedule(() -> {
             if (!future.isDone()) {
-                System.out.println("Subscriber timed out, contextKey=" + contextKey);
                 future.completeExceptionally(new TimeoutException("Subscriber timed out"));
             }
             cleanupContextSubscribers(contextKey);
@@ -124,10 +113,12 @@ public class EventBusImpl implements EventBus {
     }
 
     private void cleanupContextSubscribers(String contextKey) {
-        List<Topic> contextTopics = eventBusCache.get(contextKey);
-        if (contextTopics != null) {
-            contextTopics.removeIf(Topic::isCompleted);
-            if (contextTopics.isEmpty()) {
+        Topic contextTopic = eventBusCache.get(contextKey);
+        if (contextTopic != null && contextTopic.getSubscribers() != null) {
+
+            contextTopic.removeCompletedSubscribers();
+
+            if (contextTopic.getSubscribers().isEmpty()) {
                 eventBusCache.remove(contextKey);
             }
         }

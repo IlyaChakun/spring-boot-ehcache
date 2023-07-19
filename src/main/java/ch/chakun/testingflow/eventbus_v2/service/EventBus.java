@@ -1,4 +1,4 @@
-package ch.chakun.testingflow.eventbus_v2;
+package ch.chakun.testingflow.eventbus_v2.service;
 
 import java.io.Serializable;
 import java.util.List;

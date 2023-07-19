@@ -32,3 +32,29 @@ vm options:
 start:
 two applications, one on port 8081, second on port 8082
 ehcache must be in sync. can be tested by adding one element using server1 and get element server2
+
+
+
+
+
+
+context:    test_context
+
+subscriber: subscriber1, subscriber2
+
+events:     test_event1, test_event2, test_event3
+
+topic 
+   list subscribers
+    list events
+
+for each subscriber -> events -> is_waiting_condition_met ? 
+
+
+TEST CASE
+
+Subscriber1 -> registration_authorization_event OR registration_decline_event
+
+Subscriber2 -> registration_event, payment_authorization_event OR registration_decline_event
+
+
