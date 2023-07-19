@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @RestController
@@ -137,6 +139,142 @@ public class Controller {
         System.out.println(message);
 
         return ResponseEntity.ok(message);
+    }
+
+
+    ///////
+
+
+    private void waitForRequestEvents(ExecutorService executor, String contextKey, CompletableFuture<List<Serializable>> request) {
+        executor.submit(() -> {
+            List<Serializable> receivedRequestEvents = null;
+            try {
+                receivedRequestEvents = request.get();
+                System.out.println("RequestSubscriber Waiting done  = contextKey=" + contextKey + " received events: " + receivedRequestEvents);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    private void waitForPaymentEvents(ExecutorService executor, String contextKey, CompletableFuture<List<Serializable>> payment, String authorizationConfirmed) {
+        executor.submit(() -> {
+            try {
+
+                List<Serializable> receivedPaymentEvents = payment.get();
+                System.out.println("PaymentCallback Waiting done  = contextKey=" + contextKey + " received events: " + receivedPaymentEvents);
+
+                System.out.println("Doing payment confirmation..");
+                System.out.println("Publishing event..: " + authorizationConfirmed);
+
+                eventBus.publish(contextKey, new TestApmEvent(authorizationConfirmed));
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    private void waitForRegistrationEvents(ExecutorService executor, String contextKey,
+                                           CompletableFuture<List<Serializable>> registration, String registrationConfirmed) {
+        executor.submit(() -> {
+            try {
+                List<Serializable> receivedRegistrationEvents = registration.get();
+                System.out.println("RegistrationCallback Waiting done  = contextKey=" + contextKey + " received events: " + receivedRegistrationEvents);
+
+
+                System.out.println("Doing registration Confimration. ");
+                System.out.println("Publishing event..: " + registrationConfirmed);
+
+                eventBus.publish(contextKey, new TestApmEvent(registrationConfirmed));
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    @GetMapping("/test")
+    public void testFlow() {
+
+        // Subscriber1 -> Request
+        // Subscriber2 -> RegistrationCallback
+        // Subscriber3 -> PaymentCallback
+
+        //  RegistrationCallback needs:  REGISTRATION_SUCCESSFUL or REGISTRATION_FAILED
+        //  PaymentCallback needs: AUTHORIZATION_SUCCESSFUL AND REGISTRATION_FAILED OR REGISTRATION_CONFIRMED
+        //  Request needs: AUTHORIZATION_CONFIRMED
+
+
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
+        System.out.println("Starting flow..");
+
+        String contextKey = "PAYMENT_WITH_REGISTRATION";
+
+
+        String registrationSuccessful = "REGISTRATION_SUCCESSFUL";
+        String registrationFailed = "REGISTRATION_FAILED";
+        String registrationConfirmed = "REGISTRATION_CONFIRMED";
+
+        String authorizationSuccessful = "AUTHORIZATION_SUCCESSFUL";
+        String authorizationConfirmed = "AUTHORIZATION_CONFIRMED";
+
+
+        CompletableFuture<List<Serializable>> request = eventBus.subscribe(
+                contextKey,
+                events -> events.stream()
+                        .map(TestApmEvent.class::cast)
+                        .map(TestApmEvent::getKey)
+                        .anyMatch(key -> key.equals(authorizationConfirmed))
+        );
+        System.out.println("RequestSubscriber Starting to wait..");
+
+        waitForRequestEvents(executor, contextKey, request);
+
+
+        CompletableFuture<List<Serializable>> registration = eventBus.subscribe(
+                contextKey,
+                events -> {
+                    Set<String> keys = events.stream()
+                            .map(TestApmEvent.class::cast)
+                            .map(TestApmEvent::getKey)
+                            .collect(Collectors.toSet());
+
+                    return keys.contains(registrationSuccessful) || keys.contains(registrationFailed);
+                }
+        );
+        System.out.println("RegistrationCallback Starting to wait..");
+
+        waitForRegistrationEvents(executor, contextKey, registration, registrationConfirmed);
+
+        CompletableFuture<List<Serializable>> payment = eventBus.subscribe(
+                contextKey,
+                events -> {
+                    Set<String> keys = events.stream()
+                            .map(TestApmEvent.class::cast)
+                            .map(TestApmEvent::getKey)
+                            .collect(Collectors.toSet());
+
+                    return keys.contains(authorizationSuccessful) && (keys.contains(registrationFailed) || keys.contains(registrationConfirmed));
+                }
+        );
+        System.out.println("PaymentCallback Starting to wait..");
+
+        waitForPaymentEvents(executor, contextKey, payment, authorizationConfirmed);
+
+
+        /////////////////////
+
+        System.out.println("Starting to publish events..");
+
+        System.out.println("Publishing event..: " + authorizationSuccessful);
+        eventBus.publish(contextKey, new TestApmEvent(authorizationSuccessful));
+
+        System.out.println("Publishing event..: " + registrationSuccessful);
+        eventBus.publish(contextKey, new TestApmEvent(registrationSuccessful));
+
     }
 
 }

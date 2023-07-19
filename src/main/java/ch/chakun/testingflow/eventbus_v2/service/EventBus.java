@@ -23,6 +23,6 @@ public interface EventBus {
     //void unsubscribe(String contextKey);
 
 
-    boolean containsSubscribers(String contextKey);
+    boolean containSubscribers(String contextKey);
 
 }

@@ -80,7 +80,7 @@ public class EventBusImpl implements EventBus {
     }
 
     @Override
-    public boolean containsSubscribers(String contextKey) {
+    public boolean containSubscribers(String contextKey) {
         return eventBusCache.contains(contextKey);
     }
 
