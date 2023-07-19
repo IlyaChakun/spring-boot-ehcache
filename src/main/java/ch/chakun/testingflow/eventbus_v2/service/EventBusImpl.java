@@ -53,7 +53,7 @@ public class EventBusImpl implements EventBus {
         Subscriber subscriber = new Subscriber(waitingCondition);
 
         Topic topic = eventBusCache.computeIfAbsent(contextKey, k -> new Topic());
-        topic.getSubscribers().add(subscriber);
+        topic.addSubscriber(subscriber);
 
         CompletableFuture<List<Serializable>> subscriberFuture = subscriber.getFuture();
 

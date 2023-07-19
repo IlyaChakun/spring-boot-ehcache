@@ -29,6 +29,10 @@ public class Topic {
         topicEvents.add(event);
     }
 
+    public void addSubscriber(Subscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
     public void notifySubscribers() {
         for (Subscriber subscriber : subscribers) {
             if (subscriber.isWaitingConditionMet(topicEvents)) {

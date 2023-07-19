@@ -32,7 +32,7 @@
                                     replicateUpdatesViaCopy=true,
                                     replicateRemovals=true"/>
         <bootstrapCacheLoaderFactory class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"
-                                     properties="bootstrapAsynchronously=true"/>
+                                     properties="bootstrapAsynchronously=false"/>
     </cache>
 
     <cache name="eventBusCache"
@@ -53,7 +53,7 @@
                                     replicateUpdatesViaCopy=true,
                                     replicateRemovals=true"/>
         <bootstrapCacheLoaderFactory class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory"
-                                     properties="bootstrapAsynchronously=true"/>
+                                     properties="bootstrapAsynchronously=false"/>
     </cache>
 
 

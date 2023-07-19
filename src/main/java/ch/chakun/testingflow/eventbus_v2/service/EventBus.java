@@ -10,7 +10,8 @@ public interface EventBus {
     void publish(String contextKey, Serializable event);
 
     CompletableFuture<List<Serializable>> subscribe(String contextKey,
-                                                    Predicate<List<Serializable>> waitingCondition, int timeoutSeconds);
+                                                    Predicate<List<Serializable>> waitingCondition,
+                                                    int timeoutSeconds);
 
     CompletableFuture<List<Serializable>> subscribe(String contextKey,
                                                     Predicate<List<Serializable>> waitingCondition);
