@@ -2,40 +2,41 @@ package ch.chakun.testingflow.eventbus_v2.domain;
 
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 @ToString
-public class Subscriber<T> {
+public class Subscriber {
 
-    private final Predicate<List<T>> waitingCondition;
+    private final Predicate<List<Serializable>> waitingCondition;
 
-    private final CompletableFuture<List<T>> future = new CompletableFuture<>();
+    private final CompletableFuture<List<Serializable>> future = new CompletableFuture<>();
 
-    private List<T> subscriberPersonalEvents = new ArrayList<>();
+    private List<Serializable> events = new ArrayList<>();
 
-    public Subscriber(Predicate<List<T>> waitingCondition) {
+    public Subscriber(Predicate<List<Serializable>> waitingCondition) {
         this.waitingCondition = waitingCondition;
     }
 
-    public boolean isWaitingConditionMet(List<T> events) {
-        this.subscriberPersonalEvents = new ArrayList<>(events);
-        return waitingCondition.test(this.subscriberPersonalEvents);
+    public boolean isWaitingConditionMet(List<Serializable> events) {
+        this.events = new ArrayList<>(events);
+        return waitingCondition.test(this.events);
     }
 
     public boolean isCompleted() {
         return future.isDone();
     }
 
-    public CompletableFuture<List<T>> getFuture() {
+    public CompletableFuture<List<Serializable>> getFuture() {
         return future;
     }
-
+    
 
     public void complete() {
-        future.complete(subscriberPersonalEvents);
+        future.complete(events);
     }
 
 }

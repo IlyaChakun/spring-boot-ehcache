@@ -1,30 +1,26 @@
 package ch.chakun.testingflow.eventbus_v2.service;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public interface EventBus<T> {
+public interface EventBus {
 
-    void publishEvent(String contextKey, T event);
+    void publish(String contextKey, Serializable event);
 
-    CompletableFuture<List<T>> subscribe(String contextKey,
-                                         String subscriberKey,
-                                         Predicate<List<T>> waitingCondition,
-                                         int timeoutSeconds);
+    CompletableFuture<List<Serializable>> subscribe(String contextKey,
+                                                    Predicate<List<Serializable>> waitingCondition,
+                                                    int timeoutSeconds);
 
-    CompletableFuture<List<T>> subscribe(String contextKey,
-                                         String subscriberKey,
-                                         Predicate<List<T>> waitingCondition);
+    CompletableFuture<List<Serializable>> subscribe(String contextKey,
+                                                    Predicate<List<Serializable>> waitingCondition);
 
-    CompletableFuture<List<T>> subscribe(String contextKey,
-                                         Predicate<List<T>> waitingCondition);
+    CompletableFuture<List<Serializable>> subscribe(String contextKey);
 
-    CompletableFuture<List<T>> subscribe(String contextKey, int timeoutSeconds);
+    CompletableFuture<List<Serializable>> subscribe(String contextKey, int timeoutSeconds);
 
-    CompletableFuture<List<T>> subscribe(String contextKey);
-
-    void unsubscribe(String contextKey, String subscriberKey);
+    //void unsubscribe(String contextKey);
 
 
     boolean containSubscribers(String contextKey);
