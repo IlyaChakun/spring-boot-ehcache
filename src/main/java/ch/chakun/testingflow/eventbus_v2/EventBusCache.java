@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Qualifier("eventBusCache")
 @Getter
-public class EventBusCache extends CacheWrapper<String, Topic> {
+public class EventBusCache<T> extends CacheWrapper<String, Topic<T>> {
 
     private static final String NOTIFICATION_CACHE_NAME = "eventBusCache";
 

@@ -10,31 +10,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @ToString
 
-public class Topic {
+public class Topic<T> implements Serializable {
 
-    private final List<Subscriber> subscribers = new CopyOnWriteArrayList<>();
+    private final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
 
-    private final List<Serializable> topicEvents = new ArrayList<>();
+    private final List<T> topicEvents = new ArrayList<>();
 
     public Topic() {
     }
 
 
-    public List<Subscriber> getSubscribers() {
+    public List<Subscriber<T>> getSubscribers() {
         return subscribers;
     }
 
-
-    public void addEvent(Serializable event) {
+    public void addEvent(T event) {
         topicEvents.add(event);
     }
 
-    public void addSubscriber(Subscriber subscriber) {
+    public void addSubscriber(Subscriber<T> subscriber) {
         subscribers.add(subscriber);
     }
 
     public void notifySubscribers() {
-        for (Subscriber subscriber : subscribers) {
+        for (Subscriber<T> subscriber : subscribers) {
             if (subscriber.isWaitingConditionMet(topicEvents)) {
                 subscriber.complete();
             }
